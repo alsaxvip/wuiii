@@ -1,10 +1,625 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>MATH CASTLE</title>
-    <meta http-equiv="refresh" content="0; url=<https://script.google.com/macros/s/AKfycbxihkllGGu93HnT0dZAtagt_ILUiTobHQUROMK86oot820UsymesvyzOHZ-3N84G2QG/exec>" />
-  </head>
-  <body>
-    <p>Halaman ini akan mengalihkan Anda secara otomatis. Jika tidak, silakan klik <a href="<https://script.google.com/macros/s/AKfycbxihkllGGu93HnT0dZAtagt_ILUiTobHQUROMK86oot820UsymesvyzOHZ-3N84G2QG/exec>">di sini</a>.</p>
-  </body>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #4CAF50;
+      --white: #FFFFFF;
+      --yellow: #FFEB3B;
+      --red: #F44336;
+      --gold: #ffc107;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--white);
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--white);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--green);
+      padding-bottom: 20px;
+    }
+    .header img {
+      height: 80px;
+      margin-right: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      color: var(--green);
+      font-size: 2.5em;
+    }
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    .btn-green {
+      background-color: var(--green);
+      color: var(--white);
+    }
+    .btn-green:hover {
+      background-color: #388E3C;
+    }
+    .btn-secondary {
+      background-color: #9e9e9e;
+      color: var(--white);
+    }
+    .btn-secondary:hover {
+      background-color: #757575;
+    }
+    .login-section, .hof-section, .badges-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-section input[type="text"] {
+      padding: 12px;
+      width: 60%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1.1em;
+      margin-right: 10px;
+    }
+    .student-info {
+      background-color: #e8f5e9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 25px;
+      border: 1px solid var(--green);
+    }
+    .student-info p {
+      margin: 8px 0;
+      font-size: 1.1em;
+    }
+    .student-info p strong {
+      color: var(--green);
+    }
+    .nilai-table, .hof-table, .badges-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .nilai-table th, .nilai-table td, .hof-table th, .hof-table td, .badges-table th, .badges-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+    .nilai-table th {
+      background-color: var(--green);
+      color: var(--white);
+      font-weight: bold;
+    }
+    .nilai-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .nilai-table tr:hover {
+      background-color: #f1f1f1;
+    }
+    .highlight-row {
+      background-color: var(--yellow) !important;
+      font-weight: bold;
+    }
+    .hof-table thead th {
+      background-color: var(--gold);
+      color: var(--white);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .hof-table tr:nth-child(odd) {
+      background-color: #f9f9f9;
+    }
+    .hof-table tr:hover {
+      background-color: #f1f1f1;
+    }
+    .badges-table th {
+      background-color: #f0ad4e;
+      color: var(--white);
+      font-weight: bold;
+    }
+    #error-message-nilai, #error-message-hof, #error-message-badges {
+      color: var(--red);
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://iili.io/FqqmPFp.png" alt="Logo Sekolah">
+      <h1 id="pageTitle">APLIKASI SISWA</h1>
+    </div>
+    
+    <div style="text-align:center; margin-bottom: 20px;">
+      <button class="btn btn-green" id="showNilaiBtn" onclick="showSection('nilai')">Lihat Nilai</button>
+      <button class="btn btn-secondary" id="showBadgesBtn" onclick="showSection('badges')">My Badges</button>
+      <button class="btn btn-secondary" id="showHofBtn" onclick="showSection('hof')">Hall Of Fame</button>
+    </div>
+
+    <div id="nilai-section">
+      <div class="login-section">
+        <p>Masukkan NISN Anda untuk melihat nilai:</p>
+        <input type="text" id="nisnInputNilai" placeholder="Masukkan NISN">
+        <button class="btn btn-green" onclick="getNilai()">Cari Nilai</button>
+        <div id="error-message-nilai"></div>
+      </div>
+      <div id="result-container-nilai" style="display:none;">
+        <div class="student-info">
+          <p><strong>NAMA LENGKAP : </strong> <span id="namaLengkapNilai"></span></p>
+          <p><strong>NISN : </strong> <span id="nisnDisplayNilai"></span></p>
+          <p><strong>KELAS : </strong> <span id="kelasDisplay"></span></p>
+          <p><strong>PREDIKAT : </strong> <span id="predikatNilai"></span></p>
+          <p><strong>KEHADIRAN : </strong> <span id="kehadiranDisplay"></span></p>
+        </div>
+        <table class="nilai-table">
+          <thead>
+            <tr>
+              <th>ASPEK PENILAIAN</th>
+              <th>NILAI</th>
+            </tr>
+          </thead>
+          <tbody id="nilaiTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="badges-section" style="display:none;">
+      <div class="login-section">
+        <p>Masukkan NISN Anda untuk melihat My Badges:</p>
+        <input type="text" id="nisnInputBadges" placeholder="Masukkan NISN">
+        <button class="btn btn-green" onclick="getBadges()">Cari Badges</button>
+        <div id="error-message-badges"></div>
+      </div>
+      <div id="result-container-badges" style="display:none;">
+        <div class="student-info">
+          <p><strong>NAMA LENGKAP : </strong> <span id="namaLengkapBadges"></span></p>
+          <p><strong>NISN : </strong> <span id="nisnDisplayBadges"></span></p>
+          <p><strong>POIN : </strong> <span id="poinDisplay"></span></p>
+        </div>
+        <h2 style="text-align: center;">MY BADGES</h2>
+        <table class="badges-table">
+          <thead>
+            <tr>
+              <th>NO.</th>
+              <th>BADGES</th>
+              <th>POIN</th>
+            </tr>
+          </thead>
+          <tbody id="myBadgesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="hof-section" style="display:none;">
+      <div class="table-container">
+        <table class="hof-table">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Nama</th>
+              <th>Poin</th>
+              <th>Badges</th>
+            </tr>
+          </thead>
+          <tbody id="hofTableBody"></tbody>
+        </table>
+      </div>
+      <div id="loading-message" style="display:none;"><p>Loading data...</p></div>
+      <div id="error-message-hof" class="error-message" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      showSection('nilai');
+    });
+
+    function showSection(section) {
+      const sections = ['nilai', 'badges', 'hof'];
+      sections.forEach(s => {
+        document.getElementById(`${s}-section`).style.display = 'none';
+        document.getElementById(`show${s.charAt(0).toUpperCase() + s.slice(1)}Btn`).classList.remove('btn-green');
+        document.getElementById(`show${s.charAt(0).toUpperCase() + s.slice(1)}Btn`).classList.add('btn-secondary');
+      });
+
+      document.getElementById(`${section}-section`).style.display = 'block';
+      document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`).classList.remove('btn-secondary');
+      document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`).classList.add('btn-green');
+      
+      const pageTitles = {
+        nilai: 'NILAI MATEMATIKA',
+        badges: 'MY BADGES',
+        hof: 'HALL OF FAME'
+      };
+      document.getElementById('pageTitle').textContent = pageTitles[section];
+
+      if (section === 'hof' && document.getElementById('hofTableBody').innerHTML === '') {
+        loadHallOfFameData();
+      }
+    }
+
+    function getNilai() {
+      const nisn = document.getElementById('nisnInputNilai').value;
+      const errorMessage = document.getElementById('error-message-nilai');
+      const resultContainer = document.getElementById('result-container-nilai');
+      const nilaiTableBody = document.getElementById('nilaiTableBody');
+
+      errorMessage.textContent = '';
+      resultContainer.style.display = 'none';
+      nilaiTableBody.innerHTML = '';
+
+      if (!nisn) {
+        errorMessage.textContent = 'Mohon masukkan NISN Anda.';
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(displayNilai)
+        .withFailureHandler(showErrorNilai)
+        .getNilaiByNisn(nisn);
+    }
+
+    function displayNilai(data) {
+      const errorMessage = document.getElementById('error-message-nilai');
+      const resultContainer = document.getElementById('result-container-nilai');
+
+      if (!data) {
+        errorMessage.textContent = 'NISN tidak ditemukan. Mohon periksa kembali NISN Anda.';
+        resultContainer.style.display = 'none';
+        return;
+      }
+
+      document.getElementById('namaLengkapNilai').textContent = data.namaLengkap;
+      document.getElementById('nisnDisplayNilai').textContent = data.nisn;
+      document.getElementById('kelasDisplay').textContent = data.kelas;
+      document.getElementById('predikatNilai').textContent = data.predikat;
+      
+      let kehadiranValue = data.login;
+      if (typeof kehadiranValue === 'number' && kehadiranValue > 0 && kehadiranValue <= 1) {
+          kehadiranValue = Math.round(kehadiranValue * 100);
+      }
+      document.getElementById('kehadiranDisplay').textContent = kehadiranValue ? kehadiranValue + '%' : '-';
+
+      const nilaiTableBody = document.getElementById('nilaiTableBody');
+      const aspekPenilaian = [
+        "LKS BAB 1", "LKS BAB 2", "LKS BAB 3",
+        "CATATAN TUGAS BAB 1", "CATATAN TUGAS BAB 2", "CATATAN TUGAS BAB 3",
+        "KETERAMPILAN BAB 1", "KETERAMPILAN BAB 2", "KETERAMPILAN BAB 3",
+        "ATS LKS", "ATS ASLI", "ATS PERBAIKAN 25 SOAL",
+        "AAS LKS", "AAS ASLI", "PENILAIAN HARIAN",
+        "NILAI AKHIR ATS", "NILAI AKHIR AAS"
+      ];
+
+      aspekPenilaian.forEach(aspek => {
+        const row = nilaiTableBody.insertRow();
+        const aspekCell = row.insertCell();
+        const nilaiCell = row.insertCell();
+
+        aspekCell.textContent = aspek;
+        nilaiCell.textContent = data.nilai[aspek] !== undefined ? data.nilai[aspek] : '-';
+
+        if (aspek === "NILAI AKHIR ATS" || aspek === "NILAI AKHIR AAS" || aspek === "PENILAIAN HARIAN") {
+          row.classList.add('highlight-row');
+        }
+      });
+
+      resultContainer.style.display = 'block';
+    }
+
+    function showErrorNilai(error) {
+      document.getElementById('error-message-nilai').textContent = 'Terjadi kesalahan: ' + error.message;
+      document.getElementById('result-container-nilai').style.display = 'none';
+    }
+
+    function getBadges() {
+      const nisn = document.getElementById('nisnInputBadges').value;
+      const errorMessage = document.getElementById('error-message-badges');
+      const resultContainer = document.getElementById('result-container-badges');
+      
+      errorMessage.textContent = '';
+      resultContainer.style.display = 'none';
+
+      if (!nisn) {
+        errorMessage.textContent = 'Mohon masukkan NISN Anda.';
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(displayBadges)
+        .withFailureHandler(showErrorBadges)
+        .getStudentBadges(nisn);
+    }
+
+    function displayBadges(data) {
+      const errorMessage = document.getElementById('error-message-badges');
+      const resultContainer = document.getElementById('result-container-badges');
+      const myBadgesTableBody = document.getElementById('myBadgesTableBody');
+      
+      myBadgesTableBody.innerHTML = '';
+
+      if (!data) {
+        errorMessage.textContent = 'NISN tidak ditemukan. Mohon periksa kembali NISN Anda.';
+        resultContainer.style.display = 'none';
+        return;
+      }
+
+      document.getElementById('namaLengkapBadges').textContent = data.nama;
+      document.getElementById('nisnDisplayBadges').textContent = data.nisn;
+      document.getElementById('poinDisplay').textContent = data.poin;
+
+      if (data.myBadges && data.myBadges.length > 0) {
+        data.myBadges.forEach((item, index) => {
+          const row = myBadgesTableBody.insertRow();
+          const noCell = row.insertCell();
+          const badgeCell = row.insertCell();
+          const poinCell = row.insertCell();
+          
+          noCell.textContent = index + 1;
+          badgeCell.textContent = item.badge;
+          poinCell.textContent = item.poin;
+        });
+      } else {
+          const row = myBadgesTableBody.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 3;
+          cell.textContent = "Tidak ada badges yang ditemukan.";
+      }
+      
+      resultContainer.style.display = 'block';
+    }
+
+    function showErrorBadges(error) {
+      document.getElementById('error-message-badges').textContent = 'Terjadi kesalahan: ' + error.message;
+      document.getElementById('result-container-badges').style.display = 'none';
+    }
+
+    function loadHallOfFameData() {
+      const loadingMessage = document.getElementById('loading-message');
+      loadingMessage.style.display = 'block';
+      google.script.run
+        .withSuccessHandler(displayHallOfFame)
+        .withFailureHandler(showErrorHof)
+        .getHallOfFameData();
+    }
+
+    function displayHallOfFame(response) {
+      const loadingMessage = document.getElementById('loading-message');
+      const errorMessage = document.getElementById('error-message-hof');
+      const tableBody = document.getElementById('hofTableBody');
+
+      loadingMessage.style.display = 'none';
+      tableBody.innerHTML = '';
+
+      if (response.error) {
+        showErrorHof(new Error(response.error));
+        return;
+      }
+
+      if (response.data.length === 0) {
+        errorMessage.textContent = 'No data found.';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      response.data.forEach(row => {
+        if (row.every(cell => cell === "")) {
+          return;
+        }
+        const newRow = tableBody.insertRow();
+        row.forEach(cellValue => {
+          const cell = newRow.insertCell();
+          cell.textContent = cellValue;
+        });
+      });
+    }
+
+    function showErrorHof(error) {
+      const loadingMessage = document.getElementById('loading-message');
+      const errorMessage = document.getElementById('error-message-hof');
+      loadingMessage.style.display = 'none';
+      errorMessage.textContent = `Failed to load data: ${error.message}`;
+      errorMessage.style.display = 'block';
+    }
+  </script>
+</body>
 </html>
+
+const SPREADSHEET_ID_NILAI = "1EwK-Co9glsswvy9pQpWeLxq8QXGt5SUaQOYekQ4rTJE";
+const SPREADSHEET_ID_GAME = "1EwK-Co9glsswvy9pQpWeLxq8QXGt5SUaQOYekQ4rTJE";
+const SPREADSHEET_ID_BADGES = "1EwK-Co9glsswvy9pQpWeLxq8QXGt5SUaQOYekQ4rTJE";
+
+const SHEET_NAME_NILAI = "NILAI";
+const SHEET_NAME_HOF = "GAME";
+const SHEET_NAME_BADGES = "GAME2";
+
+function doGet() {
+  return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('MATH CASTLE');
+}
+
+function getNilaiByNisn(nisn) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID_NILAI);
+  const sheet = ss.getSheetByName(SHEET_NAME_NILAI);
+  const data = sheet.getDataRange().getValues();
+  const header = data[0];
+  const nisnColumnIndex = header.indexOf("NISN");
+
+  if (nisnColumnIndex === -1) {
+    throw new Error("Kolom 'NISN' tidak ditemukan di header sheet.");
+  }
+
+  let studentData = null;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][nisnColumnIndex] && String(data[i][nisnColumnIndex]).trim() === String(nisn).trim()) {
+      studentData = data[i];
+      break;
+    }
+  }
+
+  if (!studentData) {
+    return null;
+  }
+  
+  const output = {
+    namaLengkap: studentData[header.indexOf("NAMA LENGKAP")],
+    nisn: studentData[header.indexOf("NISN")],
+    kelas: studentData[header.indexOf("KELAS")],
+    predikat: studentData[header.indexOf("PREDIKAT")],
+    login: studentData[header.indexOf("LOGIN")], 
+    nilai: {
+      "LKS BAB 1": Math.round(studentData[header.indexOf("LKS BAB 1")]),
+      "LKS BAB 2": Math.round(studentData[header.indexOf("LKS BAB 2")]),
+      "LKS BAB 3": Math.round(studentData[header.indexOf("LKS BAB 3")]),
+      "CATATAN TUGAS BAB 1": Math.round(studentData[header.indexOf("CATATAN TUGAS BAB 1")]),
+      "CATATAN TUGAS BAB 2": Math.round(studentData[header.indexOf("CATATAN TUGAS BAB 2")]),
+      "CATATAN TUGAS BAB 3": Math.round(studentData[header.indexOf("CATATAN TUGAS BAB 3")]),
+      "KETERAMPILAN BAB 1": Math.round(studentData[header.indexOf("KETERAMPILAN BAB 1")]),
+      "KETERAMPILAN BAB 2": Math.round(studentData[header.indexOf("KETERAMPILAN BAB 2")]),
+      "KETERAMPILAN BAB 3": Math.round(studentData[header.indexOf("KETERAMPILAN BAB 3")]),
+      "ATS LKS": Math.round(studentData[header.indexOf("ATS LKS")]),
+      "ATS ASLI": Math.round(studentData[header.indexOf("ATS ASLI")]),
+      "ATS PERBAIKAN 25 SOAL": Math.round(studentData[header.indexOf("ATS PERBAIKAN 25 SOAL")]),
+      "AAS LKS": Math.round(studentData[header.indexOf("AAS LKS")]),
+      "AAS ASLI": Math.round(studentData[header.indexOf("AAS ASLI")]),
+      "PENILAIAN HARIAN": Math.round(studentData[header.indexOf("PENILAIAN HARIAN")]),
+      "NILAI AKHIR ATS": Math.round(studentData[header.indexOf("NILAI AKHIR ATS")]),
+      "NILAI AKHIR AAS": Math.round(studentData[header.indexOf("NILAI AKHIR AAS")])
+    }
+  };
+  return output;
+}
+
+function getHallOfFameData() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID_GAME);
+  const sheet = ss.getSheetByName(SHEET_NAME_HOF);
+
+  if (!sheet) {
+    return { error: `Sheet "${SHEET_NAME_HOF}" tidak ditemukan.` };
+  }
+
+  const startRow = 2;
+  const numRows = 20;
+  const numColumns = 4;
+
+  try {
+    const dataRange = sheet.getRange(startRow, 1, numRows, numColumns);
+    const data = dataRange.getValues();
+
+    return {
+      success: true,
+      data: data
+    };
+  } catch (e) {
+    return { error: `Tidak dapat mengambil data. Error: ${e.message}` };
+  }
+}
+
+function getStudentBadges(nisn) {
+  const ssBadges = SpreadsheetApp.openById(SPREADSHEET_ID_BADGES);
+  const sheetBadges = ssBadges.getSheetByName(SHEET_NAME_BADGES);
+  
+  const ssGame = SpreadsheetApp.openById(SPREADSHEET_ID_GAME);
+  const sheetGame = ssGame.getSheetByName(SHEET_NAME_HOF);
+
+  if (!sheetBadges || !sheetGame) {
+    throw new Error("Sheet 'GAME2' atau 'GAME' tidak ditemukan.");
+  }
+
+  const dataBadges = sheetBadges.getDataRange().getValues();
+  const headerBadges = dataBadges[0];
+  const nisnColumnIndexBadges = headerBadges.indexOf("NISN");
+  const namaLengkapColumnIndexBadges = headerBadges.indexOf("NAMA LENGKAP");
+  const poinBadgesColumnIndexBadges = headerBadges.indexOf("POIN BADGES");
+  
+  if (nisnColumnIndexBadges === -1 || namaLengkapColumnIndexBadges === -1 || poinBadgesColumnIndexBadges === -1) {
+    throw new Error("Kolom 'NAMA LENGKAP', 'NISN', atau 'POIN BADGES' tidak ditemukan di sheet 'GAME2'.");
+  }
+
+  let studentData = null;
+  for (let i = 1; i < dataBadges.length; i++) {
+    if (dataBadges[i][nisnColumnIndexBadges] && String(dataBadges[i][nisnColumnIndexBadges]).trim() === String(nisn).trim()) {
+      studentData = dataBadges[i];
+      break;
+    }
+  }
+
+  if (!studentData) {
+    return null;
+  }
+
+  const nama = studentData[namaLengkapColumnIndexBadges];
+  const poinTotal = studentData[poinBadgesColumnIndexBadges];
+  
+  const badgesList = studentData.slice(3);
+
+  const dataPoin = sheetGame.getDataRange().getValues();
+  const headerPoin = dataPoin[0];
+  const nisnColumnIndexPoin = headerPoin.indexOf("NISN");
+
+  if (nisnColumnIndexPoin === -1) {
+    throw new Error("Kolom 'NISN' tidak ditemukan di sheet 'GAME'.");
+  }
+  
+  let studentDataPoin = null;
+  for (let i = 1; i < dataPoin.length; i++) {
+    if (dataPoin[i][nisnColumnIndexPoin] && String(dataPoin[i][nisnColumnIndexPoin]).trim() === String(nisn).trim()) {
+      studentDataPoin = dataPoin[i];
+      break;
+    }
+  }
+
+  if (!studentDataPoin) {
+    const combinedData = badgesList
+      .filter(badge => badge && String(badge).trim() !== '')
+      .map(badge => ({ badge: badge, poin: '-' }));
+    
+    return {
+      nama: nama,
+      nisn: nisn,
+      poin: poinTotal,
+      myBadges: combinedData
+    };
+  }
+
+  const poinList = studentDataPoin.slice(8);
+
+  const combinedData = [];
+  for (let i = 0; i < badgesList.length; i++) {
+    const badge = badgesList[i];
+    if (badge && String(badge).trim() !== '') {
+      const poin = poinList[i] !== undefined && poinList[i] !== '' ? poinList[i] : '-';
+      combinedData.push({
+        badge: badge,
+        poin: poin
+      });
+    }
+  }
+  
+  return {
+    nama: nama,
+    nisn: nisn,
+    poin: poinTotal,
+    myBadges: combinedData
+  };
+}
