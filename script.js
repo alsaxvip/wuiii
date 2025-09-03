@@ -1,239 +1,145 @@
-const CSV_URL_NILAI = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnw5Bm8vr7kZu45jaY3GKSYXXW4ooFohGm1tZfC4n8rPyPuG3qYc2xRPZvc9VMTkjGWHhl7eAsqzPp/pub?gid=1829383988&single=true&output=csv';
-const CSV_URL_GAME = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnw5Bm8vr7kZu45jaY3GKSYXXW4ooFohGm1tZfC4n8rPyPuG3qYc2xRPZvc9VMTkjGWHhl7eAsqzPp/pub?gid=1080330117&single=true&output=csv';
-const CSV_URL_GAME2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnw5Bm8vr7kZu45jaY3GKSYXXW4ooFohGm1tZfC4n8rPyPuG3qYc2xRPZvc9VMTkjGWHhl7eAsqzPp/pub?gid=714629508&single=true&output=csv';
+document.addEventListener('DOMContentLoaded', () => {
+    const SPREADSHEET_ID = '1EwK-Co9glsswvy9pQpWeLxq8QXGt5SUaQOYekQ4rTJE';
+    const SHEET_NAME = 'AT78';
+    const GOOGLE_SHEETS_API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
-let allData = {};
+    const loginSection = document.getElementById('login-section');
+    const nisnInput = document.getElementById('nisn-input');
+    const loginButton = document.getElementById('login-button');
+    const resultSection = document.getElementById('result-section');
+    const loadingMessage = document.getElementById('loading');
 
-// Custom CSV parser
-function parseCsv(csvText) {
-  const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-  if (lines.length === 0) return [];
+    const namaLengkapSpan = document.getElementById('nama-lengkap');
+    const nisnSpan = document.getElementById('nisn');
+    const kelasSpan = document.getElementById('kelas');
+    const nilaiSpan = document.getElementById('nilai');
+    const rankSpan = document.getElementById('rank');
+    const answerTableBody = document.getElementById('answer-table-body');
 
-  const headers = lines[0].split(',').map(h => h.trim());
-  const data = [];
+    let sheetData = [];
+    let answerKeys = {}; // Store answer keys for different classes
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',');
-    if (values.length === headers.length) {
-      const entry = {};
-      headers.forEach((header, index) => {
-        entry[header] = values[index].trim();
-      });
-      data.push(entry);
-    }
-  }
-  return data;
-}
+    // Function to fetch and process data from Google Sheets
+    async function fetchAndProcessSheetData() {
+        loadingMessage.classList.remove('hidden');
+        try {
+            const response = await fetch(GOOGLE_SHEETS_API_URL);
+            const text = await response.text();
+            const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonText);
 
-// Main initialization function
-async function init() {
-  try {
-    const [nilaiResponse, gameResponse, game2Response] = await Promise.all([
-      fetch(CSV_URL_NILAI),
-      fetch(CSV_URL_GAME),
-      fetch(CSV_URL_GAME2)
-    ]);
+            sheetData = data.table.rows;
 
-    const [nilaiText, gameText, game2Text] = await Promise.all([
-      nilaiResponse.text(),
-      gameResponse.text(),
-      game2Response.text()
-    ]);
-    
-    allData.nilai = parseCsv(nilaiText);
-    allData.game = parseCsv(gameText);
-    allData.game2 = parseCsv(game2Text);
+            // Define the data ranges based on your specifications
+            const kelas7DataRange = { startRow: 3, endRow: 21 }; // Rows 4 to 22 (0-indexed)
+            const kelas8DataRange = { startRow: 22, endRow: 102 }; // Rows 23 to 103 (0-indexed)
 
-    document.getElementById('loading-message').style.display = 'none';
-    showSection('nilai'); // Show initial section
-    
-  } catch (error) {
-    document.getElementById('loading-message').textContent = 'Gagal memuat data. Mohon periksa koneksi internet atau tautan CSV.';
-    console.error('Failed to load CSV data:', error);
-  }
-}
+            // Define answer key rows
+            const answerKey7Row = sheetData[1].c; // Row 2 (0-indexed)
+            const answerKey8Row = sheetData[2].c; // Row 3 (0-indexed)
 
-document.addEventListener('DOMContentLoaded', init);
+            // Extract the answer keys
+            const answerKeyStartCol = 5; // Column F (0-indexed)
+            const answerKeyEndCol = 29; // Column AD (0-indexed)
 
-function showSection(section) {
-  const sections = ['nilai', 'badges', 'hof'];
-  sections.forEach(s => {
-    document.getElementById(`${s}-section`).style.display = 'none';
-    document.getElementById(`show${s.charAt(0).toUpperCase() + s.slice(1)}Btn`).classList.remove('btn-green');
-    document.getElementById(`show${s.charAt(0).toUpperCase() + s.slice(1)}Btn`).classList.add('btn-secondary');
-  });
+            answerKeys['7'] = answerKey7Row.slice(answerKeyStartCol, answerKeyEndCol + 1).map(cell => cell?.v);
+            answerKeys['8'] = answerKey8Row.slice(answerKeyStartCol, answerKeyEndCol + 1).map(cell => cell?.v);
+            
+            // Adjust the student data to include a "kelas" property for easier filtering
+            sheetData.forEach((row, index) => {
+                if (index >= kelas7DataRange.startRow && index <= kelas7DataRange.endRow) {
+                    row.kelas = '7';
+                } else if (index >= kelas8DataRange.startRow && index <= kelas8DataRange.endRow) {
+                    row.kelas = '8';
+                } else {
+                    row.kelas = 'N/A';
+                }
+            });
 
-  document.getElementById(`${section}-section`).style.display = 'block';
-  document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`).classList.remove('btn-secondary');
-  document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`).classList.add('btn-green');
-  
-  const pageTitles = {
-    nilai: 'NILAI MATEMATIKA',
-    badges: 'MY BADGES',
-    hof: 'HALL OF FAME'
-  };
-  document.getElementById('pageTitle').textContent = pageTitles[section];
+            loadingMessage.classList.add('hidden');
+            console.log("Data fetched successfully.");
+            console.log("Kelas 7 Answer Key:", answerKeys['7']);
+            console.log("Kelas 8 Answer Key:", answerKeys['8']);
 
-  if (section === 'hof') {
-    loadHallOfFameData();
-  }
-}
-
-function getNilai() {
-  const nisn = document.getElementById('nisnInputNilai').value.trim();
-  const errorMessage = document.getElementById('error-message-nilai');
-  const resultContainer = document.getElementById('result-container-nilai');
-  const nilaiTableBody = document.getElementById('nilaiTableBody');
-
-  errorMessage.textContent = '';
-  resultContainer.style.display = 'none';
-  nilaiTableBody.innerHTML = '';
-
-  if (!nisn) {
-    errorMessage.textContent = 'Mohon masukkan NISN Anda.';
-    return;
-  }
-  
-  const data = allData.nilai;
-  const studentData = data.find(row => String(row['NISN']).trim() === nisn);
-  
-  if (!studentData) {
-    errorMessage.textContent = 'NISN tidak ditemukan. Mohon periksa kembali NISN Anda.';
-    resultContainer.style.display = 'none';
-    return;
-  }
-  
-  displayNilai(studentData);
-}
-
-function displayNilai(data) {
-  document.getElementById('namaLengkapNilai').textContent = data['NAMA LENGKAP'];
-  document.getElementById('nisnDisplayNilai').textContent = data['NISN'];
-  document.getElementById('kelasDisplay').textContent = data['KELAS'];
-  document.getElementById('predikatNilai').textContent = data['PREDIKAT'];
-  
-  let kehadiranValue = parseFloat(data['LOGIN']);
-  if (!isNaN(kehadiranValue) && kehadiranValue > 0 && kehadiranValue <= 1) {
-      kehadiranValue = Math.round(kehadiranValue * 100);
-  }
-  document.getElementById('kehadiranDisplay').textContent = kehadiranValue ? kehadiranValue + '%' : '-';
-
-  const nilaiTableBody = document.getElementById('nilaiTableBody');
-  const aspekPenilaian = [
-    "LKS BAB 1", "LKS BAB 2", "LKS BAB 3",
-    "CATATAN TUGAS BAB 1", "CATATAN TUGAS BAB 2", "CATATAN TUGAS BAB 3",
-    "KETERAMPILAN BAB 1", "KETERAMPILAN BAB 2", "KETERAMPILAN BAB 3",
-    "ATS LKS", "ATS ASLI", "ATS PERBAIKAN 25 SOAL",
-    "AAS LKS", "AAS ASLI", "PENILAIAN HARIAN",
-    "NILAI AKHIR ATS", "NILAI AKHIR AAS"
-  ];
-
-  aspekPenilaian.forEach(aspek => {
-    const row = nilaiTableBody.insertRow();
-    const aspekCell = row.insertCell();
-    const nilaiCell = row.insertCell();
-
-    aspekCell.textContent = aspek;
-    nilaiCell.textContent = data[aspek] !== undefined ? Math.round(parseFloat(data[aspek])) : '-';
-
-    if (aspek === "NILAI AKHIR ATS" || aspek === "NILAI AKHIR AAS" || aspek === "PENILAIAN HARIAN") {
-      row.classList.add('highlight-row');
-    }
-  });
-  document.getElementById('result-container-nilai').style.display = 'block';
-}
-
-function getBadges() {
-  const nisn = document.getElementById('nisnInputBadges').value.trim();
-  const errorMessage = document.getElementById('error-message-badges');
-  const resultContainer = document.getElementById('result-container-badges');
-  const myBadgesTableBody = document.getElementById('myBadgesTableBody');
-  
-  errorMessage.textContent = '';
-  resultContainer.style.display = 'none';
-  myBadgesTableBody.innerHTML = '';
-
-  if (!nisn) {
-    errorMessage.textContent = 'Mohon masukkan NISN Anda.';
-    return;
-  }
-
-  const badgesData = allData.game2;
-  const studentBadgesData = badgesData.find(row => String(row['NISN']).trim() === nisn);
-  
-  if (!studentBadgesData) {
-    errorMessage.textContent = 'NISN tidak ditemukan. Mohon periksa kembali NISN Anda.';
-    resultContainer.style.display = 'none';
-    return;
-  }
-  
-  const gameData = allData.game;
-  const studentPoinData = gameData.find(row => String(row['NISN']).trim() === nisn);
-
-  const badgesList = Object.keys(studentBadgesData).filter(key => key.startsWith('BADGES '));
-  const myBadges = [];
-  badgesList.forEach(badgeKey => {
-    if (studentBadgesData[badgeKey].trim() !== '') {
-      const badgeName = studentBadgesData[badgeKey].trim();
-      let poin = '-';
-      if (studentPoinData) {
-        // Find the point for this badge
-        const poinKey = Object.keys(studentPoinData).find(key => key.includes(badgeName));
-        if (poinKey) {
-          poin = studentPoinData[poinKey];
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            loadingMessage.textContent = 'Failed to load data. Please try again later.';
         }
-      }
-      myBadges.push({ badge: badgeName, poin: poin });
     }
-  });
 
-  document.getElementById('namaLengkapBadges').textContent = studentBadgesData['NAMA LENGKAP'];
-  document.getElementById('nisnDisplayBadges').textContent = studentBadgesData['NISN'];
-  document.getElementById('poinDisplay').textContent = studentBadgesData['POIN BADGES'];
+    // Function to display student data and answers
+    function displayStudentData(studentRow) {
+        const kelas = studentRow.kelas;
+        const answerKey = answerKeys[kelas];
+        
+        // Data from the main header (A:E)
+        const namaLengkap = studentRow.c[0]?.v || 'N/A';
+        const nisn = studentRow.c[1]?.v || 'N/A';
+        const nilaiRaw = studentRow.c[2]?.v || 0;
+        const rank = studentRow.c[3]?.v || 'N/A';
+        
+        // Update the display elements
+        namaLengkapSpan.textContent = namaLengkap;
+        nisnSpan.textContent = nisn;
+        kelasSpan.textContent = kelas;
+        nilaiSpan.textContent = Math.round(nilaiRaw);
+        rankSpan.textContent = rank;
 
-  if (myBadges.length > 0) {
-    myBadges.forEach((item, index) => {
-      const row = myBadgesTableBody.insertRow();
-      const noCell = row.insertCell();
-      const badgeCell = row.insertCell();
-      const poinCell = row.insertCell();
-      
-      noCell.textContent = index + 1;
-      badgeCell.textContent = item.badge;
-      poinCell.textContent = item.poin;
+        // Clear previous answers
+        answerTableBody.innerHTML = '';
+        
+        // Student's answers start from column F (index 5)
+        const studentAnswers = studentRow.c.slice(5, 30).map(cell => cell?.v);
+
+        for (let i = 0; i < answerKey.length; i++) {
+            const row = document.createElement('tr');
+            const questionNumber = i + 1;
+            const studentAnswer = studentAnswers[i];
+            const correctAnswer = answerKey[i];
+            const isCorrect = String(studentAnswer).trim() === String(correctAnswer).trim();
+            const status = isCorrect ? 'BENAR' : 'SALAH';
+            const poin = isCorrect ? 4 : 0;
+
+            if (!isCorrect) {
+                row.classList.add('incorrect-row');
+            }
+
+            row.innerHTML = `
+                <td>${questionNumber}</td>
+                <td>${studentAnswer || '-'}</td>
+                <td>${status}</td>
+                <td>${poin}</td>
+            `;
+            answerTableBody.appendChild(row);
+        }
+
+        loginSection.classList.add('hidden');
+        resultSection.classList.remove('hidden');
+    }
+
+    // Login logic
+    loginButton.addEventListener('click', () => {
+        const enteredNisn = nisnInput.value.trim();
+
+        if (!enteredNisn) {
+            alert('Please enter your NISN.');
+            return;
+        }
+
+        // Search for the NISN in the student data
+        const studentRow = sheetData.find(row => {
+            // NISN is in column B (index 1)
+            const nisnCell = row.c[1];
+            return nisnCell && String(nisnCell.v).trim() === enteredNisn;
+        });
+
+        if (studentRow) {
+            displayStudentData(studentRow);
+        } else {
+            alert('NISN not found. Please check your NISN and try again.');
+        }
     });
-  } else {
-      const row = myBadgesTableBody.insertRow();
-      const cell = row.insertCell();
-      cell.colSpan = 3;
-      cell.textContent = "Tidak ada badges yang ditemukan.";
-  }
-  
-  resultContainer.style.display = 'block';
-}
 
-function loadHallOfFameData() {
-  const tableBody = document.getElementById('hofTableBody');
-  const hofData = allData.game;
-
-  tableBody.innerHTML = '';
-
-  if (hofData.length === 0) {
-    document.getElementById('error-message-hof').textContent = 'Tidak ada data Hall of Fame yang ditemukan.';
-    return;
-  }
-
-  const topData = hofData.slice(0, 20); // Ambil 20 baris pertama
-  topData.forEach((row, index) => {
-    const newRow = tableBody.insertRow();
-    const noCell = newRow.insertCell();
-    const namaCell = newRow.insertCell();
-    const poinCell = newRow.insertCell();
-    const badgesCell = newRow.insertCell();
-    
-    noCell.textContent = index + 1;
-    namaCell.textContent = row['NAMA'];
-    poinCell.textContent = row['POIN'];
-    badgesCell.textContent = row['BADGES'];
-  });
-}
+    // Initial data fetch when the page loads
+    fetchAndProcessSheetData();
+});
